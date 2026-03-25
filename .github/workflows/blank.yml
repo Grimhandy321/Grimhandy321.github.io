@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  schedule:
+    - cron: "0 * * * *"  
+  workflow_dispatch:   
+  
+jobs:
+  weather:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        city: ["London", "New York", "Tokyo", "Prague"]
+
+    steps:
+      - name: Fetch weather
+        run: |
+          CITY="${{ matrix.city }}"
+          WEATHER=$(curl -s "wttr.in/$CITY?format=3")
+
+          echo "$CITY|$WEATHER" > result.txt
+
+      - name: Upload result
+        uses: actions/upload-artifact@v4
+        with:
+          name: weather-${{ matrix.city }}
+          path: result.txt
+
+  summary:
+    runs-on: ubuntu-latest
+    needs: weather
+
+    steps:
+      - name: Download all results
+        uses: actions/download-artifact@v4
+        with:
+          path: results
+
+      - name: Build Markdown table
+        run: |
+          echo "## 🌤 Weather Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| City | Weather |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|---------|" >> $GITHUB_STEP_SUMMARY
+
+          for file in results/*/result.txt; do
+            LINE=$(cat "$file")
+            CITY=$(echo "$LINE" | cut -d'|' -f1)
+            WEATHER=$(echo "$LINE" | cut -d'|' -f2-)
+
+            echo "| $CITY | $WEATHER |" >> $GITHUB_STEP_SUMMARY
+          done
