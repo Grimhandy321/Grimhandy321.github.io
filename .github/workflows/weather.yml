@@ -1,4 +1,4 @@
-name: CI
+name: Matrix
 
 on:
   schedule:
@@ -11,7 +11,7 @@ jobs:
 
     strategy:
       matrix:
-        city: ["London", "New York", "Tokyo", "Prague"]
+        city: ["London", "Tokyo", "Prague"]
 
     steps:
       - name: Fetch weather
