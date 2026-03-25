@@ -1,20 +1,22 @@
 name: CI
 
 on:
-  push:
-    branches: ["main"]
-  pull_request:
-    branches: ["main"]
-  workflow_dispatch:
+  schedule:
+    - cron: "0 * * * *"  
+  workflow_dispatch:   
 
 jobs:
   weather:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        city: ["London", "New York", "Tokyo", "Prague"]
+
     steps:
       - name: Fetch weather
         run: |
-          CITY="London"
+          CITY="${{ matrix.city }}"
           WEATHER=$(curl -s "wttr.in/$CITY?format=3")
 
           echo "Weather in $CITY: $WEATHER"
